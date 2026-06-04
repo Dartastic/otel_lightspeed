@@ -2,7 +2,6 @@
 // Copyright 2025-2026 Mindful Software LLC d/b/a Dartastic.io, All rights reserved.
 
 import 'package:dartastic_opentelemetry/dartastic_opentelemetry.dart';
-import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 
 import 'otel_lightspeed_suppression.dart';
 
@@ -54,51 +53,64 @@ Future<T> tracedLightspeed<T>({
   final t = tracer ?? OTel.tracerProvider().getTracer('otel_lightspeed');
   final span = t.startSpan('lightspeed $operation', kind: SpanKind.client);
   try {
-    span.setStringAttribute('rpc.system', 'lightspeed');
+    span.addAttributes(
+        OTel.attributes([OTel.attributeString('rpc.system', 'lightspeed')]));
     final r = await invoke();
     final res = r.result;
     if (res != null) {
       if (res.accountId != null) {
-        span.setStringAttribute('lightspeed.account.id', res.accountId!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('lightspeed.account.id', res.accountId!)]));
       }
       if (res.shopId != null) {
-        span.setStringAttribute('lightspeed.shop.id', res.shopId!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('lightspeed.shop.id', res.shopId!)]));
       }
       if (res.locationId != null) {
-        span.setStringAttribute('lightspeed.location.id', res.locationId!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('lightspeed.location.id', res.locationId!)]));
       }
       if (res.saleId != null) {
-        span.setStringAttribute('lightspeed.sale.id', res.saleId!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('lightspeed.sale.id', res.saleId!)]));
       }
       if (res.employeeId != null) {
-        span.setStringAttribute('lightspeed.employee.id', res.employeeId!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('lightspeed.employee.id', res.employeeId!)]));
       }
       if (res.customerId != null) {
-        span.setStringAttribute('lightspeed.customer.id', res.customerId!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('lightspeed.customer.id', res.customerId!)]));
       }
       if (res.productId != null) {
-        span.setStringAttribute('lightspeed.product.id', res.productId!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('lightspeed.product.id', res.productId!)]));
       }
       if (res.amount != null) {
-        span.setDoubleAttribute('lightspeed.amount', res.amount!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeDouble('lightspeed.amount', res.amount!)]));
       }
       if (res.currency != null) {
-        span.setStringAttribute('lightspeed.currency', res.currency!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('lightspeed.currency', res.currency!)]));
       }
       if (res.statusCode != null) {
-        span.setIntAttribute('http.response.status_code', res.statusCode!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeInt('http.response.status_code', res.statusCode!)]));
       }
       if (res.errorCode != null) {
-        span.setStringAttribute('lightspeed.error.code', res.errorCode!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('lightspeed.error.code', res.errorCode!)]));
       }
-      final fail =
-          res.errorCode != null ||
+      final fail = res.errorCode != null ||
           (res.statusCode != null && res.statusCode! >= 400);
       if (fail) {
-        span.setStringAttribute(
-          ErrorResource.errorType.key,
-          res.errorCode ?? 'lightspeed.error',
-        );
+        span.addAttributes(OTel.attributes([
+          OTel.attributeString(
+            ErrorResource.errorType.key,
+            res.errorCode ?? 'lightspeed.error',
+          )
+        ]));
         span.setStatus(SpanStatusCode.Error, res.errorMessage);
       }
     }
