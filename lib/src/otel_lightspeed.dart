@@ -1,11 +1,12 @@
-// Licensed under the Dartastic Pro Software License Agreement.
+// Licensed under the Apache License, Version 2.0
 // Copyright 2025-2026 Mindful Software LLC d/b/a Dartastic.io, All rights reserved.
 
-import 'package:dartastic_opentelemetry/dartastic_opentelemetry.dart';
+import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 
 import 'otel_lightspeed_suppression.dart';
 
 class LightspeedResult {
+  /// Creates a result.
   const LightspeedResult({
     this.accountId,
     this.shopId,
@@ -35,8 +36,13 @@ class LightspeedResult {
   final String? errorMessage;
 }
 
+/// What a traced call returned: the value for the caller plus fields
+/// recorded on the span.
 class LightspeedCallResult<T> {
+  /// Creates a call result.
   const LightspeedCallResult({required this.value, this.result});
+
+  /// The value returned to the caller.
   final T value;
   final LightspeedResult? result;
 }
@@ -44,70 +50,77 @@ class LightspeedCallResult<T> {
 Future<T> tracedLightspeed<T>({
   required String operation,
   required Future<LightspeedCallResult<T>> Function() invoke,
-  Tracer? tracer,
+  APITracer? tracer,
 }) async {
   if (lightspeedInstrumentationSuppressed()) {
     final r = await invoke();
     return r.value;
   }
-  final t = tracer ?? OTel.tracerProvider().getTracer('otel_lightspeed');
+  final t = tracer ?? OTelAPI.tracerProvider().getTracer('otel_lightspeed');
   final span = t.startSpan('lightspeed $operation', kind: SpanKind.client);
   try {
-    span.addAttributes(
-        OTel.attributes([OTel.attributeString('rpc.system', 'lightspeed')]));
+    span.addAttributes(OTelAPI.attributes(
+        [OTelAPI.attributeString('rpc.system', 'lightspeed')]));
     final r = await invoke();
     final res = r.result;
     if (res != null) {
       if (res.accountId != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeString('lightspeed.account.id', res.accountId!)]));
+        span.addAttributes(OTelAPI.attributes([
+          OTelAPI.attributeString('lightspeed.account.id', res.accountId!)
+        ]));
       }
       if (res.shopId != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeString('lightspeed.shop.id', res.shopId!)]));
+        span.addAttributes(OTelAPI.attributes(
+            [OTelAPI.attributeString('lightspeed.shop.id', res.shopId!)]));
       }
       if (res.locationId != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeString('lightspeed.location.id', res.locationId!)]));
+        span.addAttributes(OTelAPI.attributes([
+          OTelAPI.attributeString('lightspeed.location.id', res.locationId!)
+        ]));
       }
       if (res.saleId != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeString('lightspeed.sale.id', res.saleId!)]));
+        span.addAttributes(OTelAPI.attributes(
+            [OTelAPI.attributeString('lightspeed.sale.id', res.saleId!)]));
       }
       if (res.employeeId != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeString('lightspeed.employee.id', res.employeeId!)]));
+        span.addAttributes(OTelAPI.attributes([
+          OTelAPI.attributeString('lightspeed.employee.id', res.employeeId!)
+        ]));
       }
       if (res.customerId != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeString('lightspeed.customer.id', res.customerId!)]));
+        span.addAttributes(OTelAPI.attributes([
+          OTelAPI.attributeString('lightspeed.customer.id', res.customerId!)
+        ]));
       }
       if (res.productId != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeString('lightspeed.product.id', res.productId!)]));
+        span.addAttributes(OTelAPI.attributes([
+          OTelAPI.attributeString('lightspeed.product.id', res.productId!)
+        ]));
       }
       if (res.amount != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeDouble('lightspeed.amount', res.amount!)]));
+        span.addAttributes(OTelAPI.attributes(
+            [OTelAPI.attributeDouble('lightspeed.amount', res.amount!)]));
       }
       if (res.currency != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeString('lightspeed.currency', res.currency!)]));
+        span.addAttributes(OTelAPI.attributes(
+            [OTelAPI.attributeString('lightspeed.currency', res.currency!)]));
       }
       if (res.statusCode != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeInt('http.response.status_code', res.statusCode!)]));
+        span.addAttributes(OTelAPI.attributes([
+          OTelAPI.attributeInt('http.response.status_code', res.statusCode!)
+        ]));
       }
       if (res.errorCode != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeString('lightspeed.error.code', res.errorCode!)]));
+        span.addAttributes(OTelAPI.attributes([
+          OTelAPI.attributeString('lightspeed.error.code', res.errorCode!)
+        ]));
       }
       final fail = res.errorCode != null ||
           (res.statusCode != null && res.statusCode! >= 400);
       if (fail) {
-        span.addAttributes(OTel.attributes([
-          OTel.attributeString(
-            ErrorResource.errorType.key,
+        span.addAttributes(OTelAPI.attributes([
+          OTelAPI.attributeString(
+            ErrorAttributes.errorType.key,
             res.errorCode ?? 'lightspeed.error',
           )
         ]));
